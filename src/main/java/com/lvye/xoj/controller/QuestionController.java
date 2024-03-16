@@ -10,10 +10,8 @@ import com.lvye.xoj.common.ResultUtils;
 import com.lvye.xoj.constant.UserConstant;
 import com.lvye.xoj.exception.BusinessException;
 import com.lvye.xoj.exception.ThrowUtils;
-import com.lvye.xoj.model.dto.question.QuestionAddRequest;
-import com.lvye.xoj.model.dto.question.QuestionEditRequest;
-import com.lvye.xoj.model.dto.question.QuestionQueryRequest;
-import com.lvye.xoj.model.dto.question.QuestionUpdateRequest;
+import com.lvye.xoj.model.dto.question.*;
+import com.lvye.xoj.model.dto.user.UserQueryRequest;
 import com.lvye.xoj.model.entity.Question;
 import com.lvye.xoj.model.entity.User;
 import com.lvye.xoj.model.vo.QuestionVO;
@@ -120,6 +118,14 @@ public class QuestionController {
         if (tags != null) {
             question.setTags(GSON.toJson(tags));
         }
+        List<JudgeCase> judgeCase = questionUpdateRequest.getJudgeCase();
+        if (judgeCase != null) {
+            question.setJudgeCase(GSON.toJson(judgeCase));
+        }
+        JudgeConfig judgeConfig = questionUpdateRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(GSON.toJson(judgeConfig));
+        }
         // 参数校验
         questionService.validQuestion(question, false);
         long id = questionUpdateRequest.getId();
@@ -168,6 +174,24 @@ public class QuestionController {
     }
 
     /**
+     * 分页获取用户列表（仅管理员）
+     *
+     * @param questionQueryRequest
+     * @param request
+     * @return
+     */
+    @PostMapping("/list/page")
+    @AuthCheck(mustRole = UserConstant.ADMIN_ROLE)
+    public BaseResponse<Page<Question>> listQuestionByPage(@RequestBody QuestionQueryRequest questionQueryRequest,
+                                                   HttpServletRequest request) {
+        long current = questionQueryRequest.getCurrent();
+        long size = questionQueryRequest.getPageSize();
+        Page<Question> questionPage = questionService.page(new Page<>(current, size),
+                questionService.getQueryWrapper(questionQueryRequest));
+        return ResultUtils.success(questionPage);
+    }
+
+    /**
      * 分页获取当前用户创建的资源列表
      *
      * @param questionQueryRequest
@@ -210,6 +234,14 @@ public class QuestionController {
         List<String> tags = questionEditRequest.getTags();
         if (tags != null) {
             question.setTags(GSON.toJson(tags));
+        }
+        List<JudgeCase> judgeCase = questionEditRequest.getJudgeCase();
+        if (judgeCase != null) {
+            question.setJudgeCase(GSON.toJson(judgeCase));
+        }
+        JudgeConfig judgeConfig = questionEditRequest.getJudgeConfig();
+        if (judgeConfig != null) {
+            question.setJudgeConfig(GSON.toJson(judgeConfig));
         }
         // 参数校验
         questionService.validQuestion(question, false);
